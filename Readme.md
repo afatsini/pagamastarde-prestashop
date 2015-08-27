@@ -1,1 +1,0 @@
-# Paga más tarde
