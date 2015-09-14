@@ -47,7 +47,7 @@ class PaylaterConfirmationModuleFrontController extends ModuleFrontController
             $this->context->smarty->assign(array(
                 'total' => Tools::displayPrice($cart->getOrderTotal()),
             ));
-            
+
             return $this->setTemplate('confirmation.tpl');
         } 
         else {

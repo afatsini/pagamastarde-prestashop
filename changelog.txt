@@ -1,0 +1,14 @@
+Pay later
+Author: Jose Aguilar
+Contact: jaguilar@ecomm360.es
+
+-----------------------------------------
+Change history for Pay later
+-----------------------------------------
+
+VERSION 1.0.2 (14-09-2015)
+ * ADD: changelog.txt
+ * ADD: redirect in validation controller
+ 
+VERSION 1.0.0 
+ * Original release

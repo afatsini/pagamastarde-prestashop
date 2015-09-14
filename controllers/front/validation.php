@@ -29,31 +29,31 @@ class PaylaterValidationModuleFrontController extends ModuleFrontController
     
     public function initContent() {
         
-        $module_name = $this->module->displayName;
-        $currency_id = (int)Context::getContext()->currency->id;
+        if (!Tools::getValue('redirect')) {
+            $module_name = $this->module->displayName;
+            $currency_id = (int)Context::getContext()->currency->id;
 
-        $json = file_get_contents('php://input');
-        $data = json_decode($json, true);
-        
-        /*$json = Tools::file_get_contents('php://input');
-        $data = Tools::json_decode($json, true);*/
+            $json = file_get_contents('php://input');
+            $data = json_decode($json, true);
 
-        $order_id = $data["data"]["order_id"];
-        $cart_id = $order_id;
-        
-        //PrestaShopLogger::addLog($data["event"], 1, null, 'Cart', (int)$cart_id, true);
+            /*$json = Tools::file_get_contents('php://input');
+            $data = Tools::json_decode($json, true);*/
 
-        if ($data["event"] == 'charge.created')
-        {
-            $cart = new Cart((int)$cart_id);
-            $customer = new Customer((int)$cart->id_customer);
-            $secure_key = $customer->secure_key;
+            $order_id = $data["data"]["order_id"];
+            $cart_id = $order_id;
 
-            $payment_status = Configuration::get('PS_OS_PAYMENT');
-            $message = null; 
+            if ($data["event"] == 'charge.created')
+            {
+                $cart = new Cart((int)$cart_id);
+                $customer = new Customer((int)$cart->id_customer);
+                $secure_key = $customer->secure_key;
 
-            $this->module->validateOrder($cart_id, $payment_status, $cart->getOrderTotal(), $module_name, $message, array(), $currency_id, false, $secure_key);
-            //PrestaShopLogger::addLog('Validate Order', 1, null, 'Cart', (int)$cart_id, true);
+                $payment_status = Configuration::get('PS_OS_PAYMENT');
+                $message = null; 
+
+                $this->module->validateOrder($cart_id, $payment_status, $cart->getOrderTotal(), $module_name, $message, array(), $currency_id, false, $secure_key);
+                Tools::redirect('index.php?controller=order-confirmation&id_cart='.$cart->id.'&id_module='.$this->module->id.'&id_order='.$this->module->currentOrder.'&key='.$secure_key);
+            }
         }
     }
 }

@@ -35,7 +35,7 @@ class Paylater extends PaymentModule
     {
         $this->name = 'paylater';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.0';
+        $this->version = '1.0.2';
         $this->author = 'Ecomm360';
         $this->need_instance = 0;
         $this->bootstrap = true;
