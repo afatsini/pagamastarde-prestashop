@@ -30,20 +30,30 @@ if (!defined('_PS_VERSION_'))
 class Paylater extends PaymentModule
 {
     protected $output = '';
+    public static $modulePath;
 
     public function __construct()
     {
         $this->name = 'paylater';
         $this->tab = 'payments_gateways';
-        $this->version = '1.0.2';
-        $this->author = 'Ecomm360';
+        $this->version = '2.0.0';
+        $this->author = 'Pagantis';
         $this->need_instance = 0;
         $this->bootstrap = true;
+        $this->currencies = true;
+        $this->currencies_mode = 'checkbox';
+
+        self::initModuleAccess();
 
         parent::__construct();
 
         $this->displayName = $this->l('Pay later');
         $this->description = $this->l('Customers can pay later.');
+
+        /* Backward compatibility */
+        if (version_compare(_PS_VERSION_, "1.5", "<")) {
+            require(_PS_MODULE_DIR_ . $this->name . '/backward_compatibility/backward.php');
+        }
     }
 
     public function install()
@@ -57,9 +67,13 @@ class Paylater extends PaymentModule
         //Configuration::updateValue('PAYLATER_CURRENCY', 'EUR');
         Configuration::updateValue('PAYLATER_MIN_AMOUNT', 100);
 
+
+        if(version_compare(_PS_VERSION_, "1.5", ">=")){
+            $this->registerHook('displayPaymentEU');
+        }
+
         return parent::install() &&
                 $this->registerHook('header') &&
-                $this->registerHook('displayPaymentEU') &&
                 $this->registerHook('payment') &&
                 $this->registerHook('paymentReturn');
     }
@@ -106,8 +120,20 @@ class Paylater extends PaymentModule
 
         $this->context->smarty->assign('module_dir', $this->_path);
 
-        $this->output .= $this->context->smarty->fetch($this->local_path.'views/templates/admin/information.tpl');
-        $this->output .= $this->displayFormSettings();
+        if(version_compare(_PS_VERSION_, "1.5", "<")){
+            $this->context->smarty->assign(array(
+                    'formAction' => $_SERVER['REQUEST_URI'],
+                    'formConfigValues' => $this->getConfigFormValues(),
+                    'selectValues' => array(0, 1),
+                    'outputEnvironment' => array('TEST', 'REAL'),
+                ));
+            $this->output .= $this->display(__FILE__, 'views/templates/admin/config_14.tpl');
+        }
+        else{
+            $this->output .= $this->context->smarty->fetch($this->local_path.'views/templates/admin/information.tpl');
+            $this->output .= $this->displayFormSettings();
+        }
+
 
         return $this->output;
     }
@@ -139,24 +165,24 @@ class Paylater extends PaymentModule
             ),
             'input' => array(
                 array(
-                    'type' => 'radio',
-                    'label' => $this->l('Choose environment'),
+                    'type' => 'select',
                     'name' => 'PAYLATER_ENVIRONMENT',
-                    'required' => false,
                     'is_bool' => true,
-                    'class' => 't',
-                    'values' => array(
-                        array(
-                                'id' => 'active_on',
-                                'value' => 1,
-                                'label' => $this->l('Real')
+                    'label' => $this->l('Choose environment'),
+                    'options' => array(
+                        'query' => array(
+                            array(
+                                'id_env' => 0,
+                                'name' => $this->l('Test')
+                            ),
+                            array(
+                                'id_env' => 1,
+                                'name' => $this->l('Real')
+                            )
                         ),
-                        array(
-                                'id' => 'active_off',
-                                'value' => 0,
-                                'label' => $this->l('Test')
-                        )
-                    ),
+                        'id' => 'id_env',
+                        'name' => 'name'
+                    )
                 ),
                 array(
                     'type' => 'text',
@@ -226,16 +252,32 @@ class Paylater extends PaymentModule
         return $helper->generateForm($this->fields_form);
     }
 
+
+    /**
+     * Retrocompatibility PS 1.4 get config values
+     * @return array
+     */
+    protected function getConfigFormValues()
+    {
+        return array(
+            'PAYLATER_ENVIRONMENT' => Configuration::get('PAYLATER_ENVIRONMENT'),
+            'PAYLATER_ACCOUNT_ID_TEST' => Configuration::get('PAYLATER_ACCOUNT_ID_TEST'),
+            'PAYLATER_ACCOUNT_KEY_TEST' => Configuration::get('PAYLATER_ACCOUNT_KEY_TEST'),
+            'PAYLATER_ACCOUNT_ID_LIVE' => Configuration::get('PAYLATER_ACCOUNT_ID_LIVE'),
+            'PAYLATER_ACCOUNT_KEY_LIVE' => Configuration::get('PAYLATER_ACCOUNT_KEY_LIVE'),
+            'PAYLATER_MIN_AMOUNT' => Configuration::get('PAYLATER_MIN_AMOUNT')
+        );
+    }
+
     public function hookHeader()
     {
-        $this->context->controller->addJS($this->_path.'/views/js/front.js');
         $this->context->controller->addCSS($this->_path.'/views/css/front.css');
     }
 
     public function hookPayment($params)
     {
-        if ($this->context->cart->getOrderTotal() < Configuration::get('PAYLATER_MIN_AMOUNT')) 
-            return;
+        /*if ($this->context->cart->getOrderTotal() < Configuration::get('PAYLATER_MIN_AMOUNT'))
+            return;*/
         
         $customer = new Customer((int)($this->context->cart->id_customer));
         $cart_products = $this->context->cart->getProducts();
@@ -248,41 +290,35 @@ class Paylater extends PaymentModule
                         'total_wt' => number_format($p['total_wt'], 2, '.', '')
             );
         }
-        
-        if ($this->context->cart->getTotalShippingCost(null, true, null) > 0)
+
+        if(version_compare(_PS_VERSION_, "1.5", "<")){
+            $shippingCost = $this->context->cart->getOrderShippingCost();
+        }else{
+            $shippingCost = $this->context->cart->getTotalShippingCost(null, true, null);
+        }
+
+        $url_OK = $this->getPagantisLink('confirmation.php', array('status'=>'ok', 'c' => $this->context->cart->id));
+        $url_NOK = $this->getPagantisLink('confirmation.php', array('status'=>'ko'));
+
+        if ($shippingCost > 0)
             $items[] = array(
                         'name' => $this->l('Shipping cost'), 
                         'cart_quantity' => 1,
-                        'total_wt' => number_format($this->context->cart->getTotalShippingCost(null, true, null), 2, '.', '')
+                        'total_wt' => number_format($shippingCost, 2, '.', '')
             );
         
-        //d($items);
-
         if (Configuration::get('PAYLATER_ENVIRONMENT') == 1) {
             //mode live
             $account_id = Configuration::get('PAYLATER_ACCOUNT_ID_LIVE');
-            //$enc_key = Configuration::get('PAYLATER_ACCOUNT_KEY_LIVE');
         }
         else {
             //mode test
             $account_id = Configuration::get('PAYLATER_ACCOUNT_ID_TEST');
-            //$enc_key = Configuration::get('PAYLATER_ACCOUNT_KEY_TEST');
         }
         
         $endpoint = Configuration::get('PAYLATER_URL');
 
         $order_id = $this->context->cart->id;   
-        
-        $params = array(
-            'key' => $customer->secure_key, 
-            'id_cart' => $this->context->cart->id, 
-            'id_module' => $this->id, 
-            'id_order' => $this->context->cart->id
-        );
-        
-        $url_OK = $this->context->link->getModuleLink('paylater', 'confirmation', $params);
-        //$url_OK = $this->context->link->getPageLink('order-confirmation', $params);
-        $url_NOK = $this->context->link->getModuleLink('paylater', 'confirmation');
         
         //description
         $description = $this->l('Pedido').' '.$order_id;
@@ -320,10 +356,11 @@ class Paylater extends PaymentModule
             'customer_email' => ($this->context->cookie->logged ? $this->context->cookie->email : false),
             'locale' => $this->context->language->iso_code,
             'cart_products' => $cart_products,
-            'iframe' => 'true'
+            'iframe' => 'true',
+            'version4' => version_compare(_PS_VERSION_, "1.5", "<"),
         ));
         
-        return $this->display(__FILE__, 'views/templates/hook/payment.tpl');
+        return $this->display(__FILE__, 'views/templates/front/payment.tpl');
     }
     
     public function hookDisplayPaymentEU($params)
@@ -331,6 +368,11 @@ class Paylater extends PaymentModule
         return $this->hookPayment($params);
     }
 
+    /**
+     * Not used because pagantis redirect return to ok_url & nok_url
+     * @param $params
+     * @return mixed
+     */
     public function hookPaymentReturn($params)
     {
         if ($this->active == false)
@@ -348,6 +390,22 @@ class Paylater extends PaymentModule
                 'total' => Tools::displayPrice($params['total_to_pay'], $params['currencyObj'], false),
         ));
 
-        return $this->display(__FILE__, 'views/templates/hook/confirmation.tpl');
+        return $this->display(__FILE__, 'views/templates/front/confirmation.tpl');
+    }
+
+    /**
+     * Retrocomatibility prestashop 1.4, it's necesary file path because doesn't exists ModuleFrontController
+     * @param $file
+     * @param array $params
+     * @return string
+     */
+    public function getPagantisLink($file,array $params = array())
+	{
+			return Tools::getShopDomainSsl(true)._MODULE_DIR_.$this->name.'/'.$file.'?'.http_build_query($params);
+	}
+
+    public static function initModuleAccess()
+    {
+        paylater::$modulePath = _PS_MODULE_DIR_.'paylater/';
     }
 }

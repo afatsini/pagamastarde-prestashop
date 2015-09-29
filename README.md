@@ -1,4 +1,4 @@
-# Módulo de prestashop 1.5 y 1.6 para  pagantis.com
+# Módulo de prestashop 1.4, 1.5 y 1.6 para  pagantis.com
 
 
 ## Instrucciones de Instalación
@@ -16,9 +16,9 @@ Para que los pedidos se completen y los pedidos cobrados a través de tu cuenta 
 
 Ejemplos:
 
-- Si tu tienda está en el dominio http://www.mitienda.es, la URL será: http://www.mitienda.es/module/paylater/validation
-- Si tu tienda está en el subdominio http://shop.midominio.com, la URL será: http://shop.midominio.com/module/paylater/validation
-- Si tu tienda está en la carpeta "tienda" del dominio http://www.midominio.com, la URL será: http://www.midominio.com/tienda/module/paylater/validation
+- Si tu tienda está en el dominio http://www.mitienda.es, la URL será: http://www.mitienda.es/modules/paylater/validation.php
+- Si tu tienda está en el subdominio http://shop.midominio.com, la URL será: http://shop.midominio.com/modules/paylater/validation.php
+- Si tu tienda está en la carpeta "tienda" del dominio http://www.midominio.com, la URL será: http://www.midominio.com/tienda/modules/paylater/validation.php
 
 
 ## Modo real y modo de pruebas

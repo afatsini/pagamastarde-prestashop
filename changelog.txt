@@ -1,10 +1,18 @@
 Pay later
-Author: Jose Aguilar
-Contact: jaguilar@ecomm360.es
+Author: Pagantis
 
 -----------------------------------------
 Change history for Pay later
 -----------------------------------------
+VERSION 2.0.0 (23-09-2015)
+ * Added backward compatibility lib.
+ * Deleted controllers folders to make it compatible with PS 1.4
+ * Refactor validation process to make it compatible with PS 1.4
+ * Refactor notification URL to make it compatible with PS 1.4 and avoid friendly url problems.
+ * Refactor URLs OK/KO to avoid friendly url problems.
+ * Custom template for PS 1.4 configuration page.
+ * Fix Choose environment on PS 1.5 configuration page.
+ * Fix payment button on PS 1.5
 
 VERSION 1.0.2 (14-09-2015)
  * ADD: changelog.txt
