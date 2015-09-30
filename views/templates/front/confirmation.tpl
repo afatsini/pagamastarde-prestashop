@@ -28,8 +28,7 @@
 
 <h3>{l s='Your order is complete.' mod='paylater'}</h3>
 <p>
-	<br />- {l s='Amount' mod='paylater'} : <span class="price"><strong>{$total|escape:'htmlall':'UTF-8'}</strong></span>
-	
+	<br />- {l s='Amount' mod='paylater'} : <span class="price"><strong>{$total|round:"22"|escape:'htmlall':'UTF-8'}{$currency->sign}</strong></span>
 	<br /><br />{l s='An email has been sent with this information.' mod='paylater'}
 	<br /><br />{l s='If you have questions, comments or concerns, please contact our expert customer support team.' mod='paylater'}
 </p>
