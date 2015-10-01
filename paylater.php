@@ -36,7 +36,7 @@ class Paylater extends PaymentModule
     {
         $this->name = 'paylater';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.2';
+        $this->version = '2.0.3';
         $this->author = 'Pagantis';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -65,7 +65,7 @@ class Paylater extends PaymentModule
         Configuration::updateValue('PAYLATER_ACCOUNT_ID_LIVE', '');
         Configuration::updateValue('PAYLATER_ACCOUNT_KEY_LIVE', '');
         //Configuration::updateValue('PAYLATER_CURRENCY', 'EUR');
-        Configuration::updateValue('PAYLATER_MIN_AMOUNT', 100);
+//        Configuration::updateValue('PAYLATER_MIN_AMOUNT', 100);
 
 
         if(version_compare(_PS_VERSION_, "1.5", ">=")){
@@ -87,7 +87,7 @@ class Paylater extends PaymentModule
         Configuration::deleteByName('PAYLATER_ACCOUNT_ID_LIVE');
         Configuration::deleteByName('PAYLATER_ACCOUNT_KEY_LIVE');
         //Configuration::deleteByName('PAYLATER_CURRENCY');
-        Configuration::deleteByName('PAYLATER_MIN_AMOUNT');
+//        Configuration::deleteByName('PAYLATER_MIN_AMOUNT');
 
         return parent::uninstall();
     }
@@ -102,10 +102,10 @@ class Paylater extends PaymentModule
             Configuration::updateValue('PAYLATER_ACCOUNT_KEY_LIVE', Tools::getValue('PAYLATER_ACCOUNT_KEY_LIVE'));
             //Configuration::updateValue('PAYLATER_CURRENCY', Tools::getValue('PAYLATER_CURRENCY'));
             
-            if (!Validate::isInt(Tools::getValue('PAYLATER_MIN_AMOUNT')))
+            /*if (!Validate::isInt(Tools::getValue('PAYLATER_MIN_AMOUNT')))
                 $error .= $this->l('The minimun amount must be integer.');
             else
-                Configuration::updateValue('PAYLATER_MIN_AMOUNT', Tools::getValue('PAYLATER_MIN_AMOUNT'));
+                Configuration::updateValue('PAYLATER_MIN_AMOUNT', Tools::getValue('PAYLATER_MIN_AMOUNT'));*/
 
             if ($error != '') 
                 $this->output .= $this->displayError($error);
@@ -224,7 +224,7 @@ class Paylater extends PaymentModule
                     'lang' => false,
                     'col' => 2,
                 ),*/
-                array(
+                /*array(
                     'type' => 'text',
                     'label' => $this->l('Minimum amount'),
                     'name' => 'PAYLATER_MIN_AMOUNT',
@@ -232,7 +232,7 @@ class Paylater extends PaymentModule
                     'required' => false,
                     'lang' => false,
                     'col' => 2,
-                ),
+                ),*/
             ),
             'submit' => array(
                 'name' => 'submitPaylaterSettings',
@@ -247,7 +247,7 @@ class Paylater extends PaymentModule
         $helper->fields_value['PAYLATER_ACCOUNT_ID_LIVE'] = Configuration::get('PAYLATER_ACCOUNT_ID_LIVE');
         $helper->fields_value['PAYLATER_ACCOUNT_KEY_LIVE'] = Configuration::get('PAYLATER_ACCOUNT_KEY_LIVE');
         //$helper->fields_value['PAYLATER_CURRENCY'] = Configuration::get('PAYLATER_CURRENCY');
-        $helper->fields_value['PAYLATER_MIN_AMOUNT'] = Configuration::get('PAYLATER_MIN_AMOUNT');
+//        $helper->fields_value['PAYLATER_MIN_AMOUNT'] = Configuration::get('PAYLATER_MIN_AMOUNT');
 
         return $helper->generateForm($this->fields_form);
     }
@@ -264,8 +264,8 @@ class Paylater extends PaymentModule
             'PAYLATER_ACCOUNT_ID_TEST' => Configuration::get('PAYLATER_ACCOUNT_ID_TEST'),
             'PAYLATER_ACCOUNT_KEY_TEST' => Configuration::get('PAYLATER_ACCOUNT_KEY_TEST'),
             'PAYLATER_ACCOUNT_ID_LIVE' => Configuration::get('PAYLATER_ACCOUNT_ID_LIVE'),
-            'PAYLATER_ACCOUNT_KEY_LIVE' => Configuration::get('PAYLATER_ACCOUNT_KEY_LIVE'),
-            'PAYLATER_MIN_AMOUNT' => Configuration::get('PAYLATER_MIN_AMOUNT')
+            'PAYLATER_ACCOUNT_KEY_LIVE' => Configuration::get('PAYLATER_ACCOUNT_KEY_LIVE')
+//            'PAYLATER_MIN_AMOUNT' => Configuration::get('PAYLATER_MIN_AMOUNT')
         );
     }
 
@@ -276,8 +276,8 @@ class Paylater extends PaymentModule
 
     public function hookPayment($params)
     {
-        if ($this->context->cart->getOrderTotal() < Configuration::get('PAYLATER_MIN_AMOUNT'))
-            return;
+        /*if ($this->context->cart->getOrderTotal() < Configuration::get('PAYLATER_MIN_AMOUNT'))
+            return;*/
         
         $customer = new Customer((int)($this->context->cart->id_customer));
         $cart_products = $this->context->cart->getProducts();

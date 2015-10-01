@@ -102,7 +102,7 @@
         <br />
 
         <br />
-        <label for="PAYLATER_MIN_AMOUNT" class="labels">{l s='Cart minimum amount to pay later.' mod='paylater'} </label>
+        {*<label for="PAYLATER_MIN_AMOUNT" class="labels">{l s='Cart minimum amount to pay later.' mod='paylater'} </label>
         <input
                 id="PAYLATER_MIN_AMOUNT"
                 class="paylater_input"
@@ -110,7 +110,7 @@
                 name="PAYLATER_MIN_AMOUNT"
                 value="{$formConfigValues.PAYLATER_MIN_AMOUNT|escape:'htmlall':'UTF-8'}" />
 
-        <br /><br />
+        <br /><br />*}
 
         <input
                 class="button"
