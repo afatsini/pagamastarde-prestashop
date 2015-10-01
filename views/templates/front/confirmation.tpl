@@ -23,13 +23,12 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
-{capture name=path}{l s='Pay later confirmation' mod='paylater'}{/capture}  
+{capture name=path}{l s='Pay later confirmation' mod='paylater'}{/capture}
+{if version_compare($smarty.const._PS_VERSION_,'1.6.0.0','<')}{include file="$tpl_dir./breadcrumb.tpl"}{/if}
 
-<h3>{l s='Your order on %s is complete.' sprintf=$shop_name mod='paylater'}</h3>
-<img src="{$modules_dir|escape:'html':'UTF-8'}paylater/views/img/ok.png" alt="{l s='Payment success' mod='paylater'}" longdesc="{l s='Payment success' mod='paylater'}" />
+<h3>{l s='Your order is complete.' mod='paylater'}</h3>
 <p>
-	<br />- {l s='Amount' mod='paylater'} : <span class="price"><strong>{$total|escape:'htmlall':'UTF-8'}</strong></span>
-	
+	<br />- {l s='Amount' mod='paylater'} : <span class="price"><strong>{$total|round:"22"|escape:'htmlall':'UTF-8'}{$currency->sign}</strong></span>
 	<br /><br />{l s='An email has been sent with this information.' mod='paylater'}
-	<br /><br />{l s='If you have questions, comments or concerns, please contact our' mod='paylater'} <a href="{$link->getPageLink('contact', true)|escape:'html':'UTF-8'}">{l s='expert customer support team.' mod='paylater'}</a>
+	<br /><br />{l s='If you have questions, comments or concerns, please contact our expert customer support team.' mod='paylater'}
 </p>

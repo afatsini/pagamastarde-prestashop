@@ -25,17 +25,13 @@
 
 {capture name=path}{l s='Payment error' mod='paylater'}{/capture}
 
-{include file="$tpl_dir./breadcrumb.tpl"}
+{if version_compare($smarty.const._PS_VERSION_,'1.6.0.0','<')}{include file="$tpl_dir./breadcrumb.tpl"}{/if}
 
 <h2 style="font-style: normal;">{l s='Your payment could not be completed' mod='paylater'}</h2><br />
 
 
-<div style="float:right; margin-left: 25px;">
-  <img src="{$modules_dir|escape:'html':'UTF-8'}paylater/img/error.png" alt="{l s='Payment error' mod='paylater'}" longdesc="{l s='Payment error' mod='paylater'}" /></td></tr><tr>
-</div>
-
 <p>
-{l s='We are sorry, but your payment could not be successfully completed. You can try again or choose another payment method. Remember that you can only use Visa and Mastercard credit or debit cards.' mod='paylater'}
+{l s='We are sorry, but your payment could not be successfully completed. You can try again or choose another payment method.' mod='paylater'}
 </p>
 
 <p>
@@ -53,4 +49,11 @@
 
 <br />
 
-<a href="{$base_dir_ssl|escape:'html':'UTF-8'}index.php?controller=order&step=3" title="{l s='Try again' mod='paylater'}" style="text-transform: uppercase; border: 1px solid green; background-color: green; font-size: 13px; font-weight: bold; color: white; padding: 5px; float: right; margin: 4em 0;">{l s='Try again' mod='paylater'}</a>
+{if $cart_qties > 0}
+    {if version_compare($smarty.const._PS_VERSION_,'1.5.0.0','<')}
+        <a href="{$link->getPageLink('order', true)|escape:'html'}.php"  style="text-transform: uppercase; border: 1px solid green; background-color: green; font-size: 13px; font-weight: bold; color: white; padding: 5px; float: left; margin-top: 20px;">{l s='Try again' mod='paylater'}</a>
+    {else}
+        <a href="{$link->getPageLink('order', true)|escape:'html'}"  style="text-transform: uppercase; border: 1px solid green; background-color: green; font-size: 13px; font-weight: bold; color: white; padding: 5px; float: right; margin-top: 20px;">{l s='Try again' mod='paylater'}</a>
+    {/if}
+
+{/if}
