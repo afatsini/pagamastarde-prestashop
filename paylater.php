@@ -36,7 +36,7 @@ class Paylater extends PaymentModule
     {
         $this->name = 'paylater';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.1';
+        $this->version = '2.0.2';
         $this->author = 'Pagantis';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -276,8 +276,8 @@ class Paylater extends PaymentModule
 
     public function hookPayment($params)
     {
-        /*if ($this->context->cart->getOrderTotal() < Configuration::get('PAYLATER_MIN_AMOUNT'))
-            return;*/
+        if ($this->context->cart->getOrderTotal() < Configuration::get('PAYLATER_MIN_AMOUNT'))
+            return;
         
         $customer = new Customer((int)($this->context->cart->id_customer));
         $cart_products = $this->context->cart->getProducts();
