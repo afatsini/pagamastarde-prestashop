@@ -23,7 +23,7 @@
 *  International Registered Trademark & Property of PrestaShop SA
 *}
 
-<div class="panel">
+<div class="panel" style="margin-bottom: 20px">
     <h3><i class="icon icon-credit-card"></i> {l s='Pay later' mod='paylater'}</h3>
     <div class="row paylater-header">
         <div class="col-xs-6 col-md-4">
@@ -37,7 +37,12 @@
             <img src="{$module_dir|escape:'html':'UTF-8'}views/img/logo-229x130.png" class="col-xs-6 col-md-4 pull-right" id="payment-logo" />
         </div>
     </div>
-    
-	
-	
 </div>
+
+{if version_compare($smarty.const._PS_VERSION_,'1.6.0.0','<')}
+    <style>
+        #configuration_toolbar{
+            display:none
+        }
+    </style>
+{/if}

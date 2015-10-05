@@ -23,6 +23,14 @@
 *  International Registered Trademark & Property of PrestaShop SA
 */
 
+.paylater_text {
+    float: left;
+    margin-top: 3%;
+}
+.paylater_text:hover {
+    text-decoration: underline;
+}
+
 #paylater_payment_button {
     float: none;
 }
