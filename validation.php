@@ -1,14 +1,15 @@
 <?php
 /**
 * paylater validation page, Prestashop 1.4 don't allow ModuleFrontController
-* 
+*
 * @category payment
 * @author    Victor Lopez <victor.lopez@yameveo.com>
 * @copyright Yameveo http://www.yameveo.com
 * @license   http://www.yameveo.com/license
 */
 
-$path = $_SERVER['DOCUMENT_ROOT'];
+//$path = $_SERVER['DOCUMENT_ROOT'];
+$path = getcwd()."/../../";
 include("{$path}/config/config.inc.php");
 include("{$path}/init.php");
 

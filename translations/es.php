@@ -14,6 +14,7 @@ $_MODULE['<{paylater}prestashop>paylater_4e86b4e5ee980ca84e19d0168c557628'] = 'T
 $_MODULE['<{paylater}prestashop>paylater_eb93e767126d049a66a4b98ebd98d23e'] = 'TEST - Clave de firma ';
 $_MODULE['<{paylater}prestashop>paylater_f5e41928371f23f16eac404491718b36'] = 'REAL - Código de la cuenta ';
 $_MODULE['<{paylater}prestashop>paylater_b2a41310a2e838b96158d4bbd3f0937f'] = 'REAL - Clave de firma';
+$_MODULE['<{paylater}prestashop>paylater_104D9898C04874D0FBAC36E125FA1369'] = 'Descuento - asumir comisiones';
 $_MODULE['<{paylater}prestashop>paylater_386c339d37e737a436499d423a77df0c'] = 'Moneda';
 $_MODULE['<{paylater}prestashop>paylater_9f6e99bdd4184b83dc478d0ab1b4cbf7'] = 'Importe mínimo';
 $_MODULE['<{paylater}prestashop>paylater_386f440bd8415f295f9afcbbc83d1d01'] = 'Importe mínimo del carrito para poder utilizar esta forma de pago.';

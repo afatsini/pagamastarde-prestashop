@@ -36,7 +36,7 @@ class Paylater extends PaymentModule
     {
         $this->name = 'paylater';
         $this->tab = 'payments_gateways';
-        $this->version = '2.0.3';
+        $this->version = '3.0.1';
         $this->author = 'Pagantis';
         $this->need_instance = 0;
         $this->bootstrap = true;
@@ -64,6 +64,7 @@ class Paylater extends PaymentModule
         Configuration::updateValue('PAYLATER_ACCOUNT_KEY_TEST', '');
         Configuration::updateValue('PAYLATER_ACCOUNT_ID_LIVE', '');
         Configuration::updateValue('PAYLATER_ACCOUNT_KEY_LIVE', '');
+				Configuration::updateValue('PAYLATER_DISCOUNT', 'false');
         //Configuration::updateValue('PAYLATER_CURRENCY', 'EUR');
 //        Configuration::updateValue('PAYLATER_MIN_AMOUNT', 100);
 
@@ -86,12 +87,13 @@ class Paylater extends PaymentModule
         Configuration::deleteByName('PAYLATER_ACCOUNT_KEY_TEST');
         Configuration::deleteByName('PAYLATER_ACCOUNT_ID_LIVE');
         Configuration::deleteByName('PAYLATER_ACCOUNT_KEY_LIVE');
+				Configuration::deleteByName('PAYLATER_DISCOUNT');
         //Configuration::deleteByName('PAYLATER_CURRENCY');
 //        Configuration::deleteByName('PAYLATER_MIN_AMOUNT');
 
         return parent::uninstall();
     }
-    
+
     public function postProcess() {
         if (Tools::isSubmit('submitPaylaterSettings')) {
             $error = '';
@@ -100,16 +102,17 @@ class Paylater extends PaymentModule
             Configuration::updateValue('PAYLATER_ACCOUNT_KEY_TEST', Tools::getValue('PAYLATER_ACCOUNT_KEY_TEST'));
             Configuration::updateValue('PAYLATER_ACCOUNT_ID_LIVE', Tools::getValue('PAYLATER_ACCOUNT_ID_LIVE'));
             Configuration::updateValue('PAYLATER_ACCOUNT_KEY_LIVE', Tools::getValue('PAYLATER_ACCOUNT_KEY_LIVE'));
+						Configuration::updateValue('PAYLATER_DISCOUNT', Tools::getValue('PAYLATER_DISCOUNT'));
             //Configuration::updateValue('PAYLATER_CURRENCY', Tools::getValue('PAYLATER_CURRENCY'));
-            
+
             /*if (!Validate::isInt(Tools::getValue('PAYLATER_MIN_AMOUNT')))
                 $error .= $this->l('The minimun amount must be integer.');
             else
                 Configuration::updateValue('PAYLATER_MIN_AMOUNT', Tools::getValue('PAYLATER_MIN_AMOUNT'));*/
 
-            if ($error != '') 
+            if ($error != '')
                 $this->output .= $this->displayError($error);
-            else 
+            else
                 $this->output .= $this->displayConfirmation($this->l('The settings updated ok.'));
         }
     }
@@ -137,9 +140,9 @@ class Paylater extends PaymentModule
 
         return $this->output;
     }
-    
+
     public function displayFormSettings() {
-        
+
         $languages = Language::getLanguages(false);
         foreach ($languages as $k => $language)
             $languages[$k]['is_default'] = (int)$language['id_lang'] == Configuration::get('PS_LANG_DEFAULT');
@@ -216,6 +219,26 @@ class Paylater extends PaymentModule
                     'lang' => false,
                     'col' => 4,
                 ),
+								array(
+										'type' => 'select',
+										'name' => 'PAYLATER_DISCOUNT',
+										'is_bool' => true,
+										'label' => $this->l('Discount'),
+										'options' => array(
+												'query' => array(
+														array(
+																'id_discount' => 'false',
+																'name' => $this->l('False')
+														),
+														array(
+																'id_discount' => 'true',
+																'name' => $this->l('True')
+														)
+												),
+												'id' => 'id_discount',
+												'name' => 'name'
+										)
+								),
                 /*array(
                     'type' => 'text',
                     'label' => $this->l('Currency'),
@@ -246,6 +269,7 @@ class Paylater extends PaymentModule
         $helper->fields_value['PAYLATER_ACCOUNT_KEY_TEST'] = Configuration::get('PAYLATER_ACCOUNT_KEY_TEST');
         $helper->fields_value['PAYLATER_ACCOUNT_ID_LIVE'] = Configuration::get('PAYLATER_ACCOUNT_ID_LIVE');
         $helper->fields_value['PAYLATER_ACCOUNT_KEY_LIVE'] = Configuration::get('PAYLATER_ACCOUNT_KEY_LIVE');
+				$helper->fields_value['PAYLATER_DISCOUNT'] = Configuration::get('PAYLATER_DISCOUNT');
         //$helper->fields_value['PAYLATER_CURRENCY'] = Configuration::get('PAYLATER_CURRENCY');
 //        $helper->fields_value['PAYLATER_MIN_AMOUNT'] = Configuration::get('PAYLATER_MIN_AMOUNT');
 
@@ -264,7 +288,8 @@ class Paylater extends PaymentModule
             'PAYLATER_ACCOUNT_ID_TEST' => Configuration::get('PAYLATER_ACCOUNT_ID_TEST'),
             'PAYLATER_ACCOUNT_KEY_TEST' => Configuration::get('PAYLATER_ACCOUNT_KEY_TEST'),
             'PAYLATER_ACCOUNT_ID_LIVE' => Configuration::get('PAYLATER_ACCOUNT_ID_LIVE'),
-            'PAYLATER_ACCOUNT_KEY_LIVE' => Configuration::get('PAYLATER_ACCOUNT_KEY_LIVE')
+            'PAYLATER_ACCOUNT_KEY_LIVE' => Configuration::get('PAYLATER_ACCOUNT_KEY_LIVE'),
+			'PAYLATER_DISCOUNT' => Configuration::get('PAYLATER_DISCOUNT')
 //            'PAYLATER_MIN_AMOUNT' => Configuration::get('PAYLATER_MIN_AMOUNT')
         );
     }
@@ -276,20 +301,37 @@ class Paylater extends PaymentModule
 
     public function hookPayment($params)
     {
+			header( "X-Content-Security-Policy: allow 'self'; options inline-script eval-script; frame-ancestors https://pmt.pagantis.com " );
         /*if ($this->context->cart->getOrderTotal() < Configuration::get('PAYLATER_MIN_AMOUNT'))
             return;*/
-        
+
         $customer = new Customer((int)($this->context->cart->id_customer));
         $cart_products = $this->context->cart->getProducts();
         $items = array();
-        
+
+				$description=array();
         foreach ($cart_products as $p) {
             $items[] = array(
-                        'name' => $p['name'], 
+                        'name' => $p['name']. " (".$p['cart_quantity'].")",
                         'cart_quantity' => $p['cart_quantity'],
                         'total_wt' => number_format($p['total_wt'], 2, '.', '')
             );
+		     $desciption[]=  $p['name']. " (".$p['cart_quantity'].")";
         }
+
+		//address
+		$address = new Address($this->context->cart->id_address_delivery);
+		$street=$address->address1.' '.$address->address2;
+		$city=$address->city;
+		$state = new state ($address->id_state);
+		$province=$state->name;
+		$zipcode=$address->postcode;
+
+		//dni
+		$dni=$address->dni;
+
+		//dynamic CallbackFilterIterator
+		$callback_url= $this->getPagantisCallbackUrl('validation.php', array());
 
         if(version_compare(_PS_VERSION_, "1.5", "<")){
             $shippingCost = $this->context->cart->getOrderShippingCost();
@@ -300,13 +342,14 @@ class Paylater extends PaymentModule
         $url_OK = $this->getPagantisLink('confirmation.php', array('status'=>'ok', 'c' => $this->context->cart->id));
         $url_NOK = $this->getPagantisLink('confirmation.php', array('status'=>'ko'));
 
-        if ($shippingCost > 0)
+        if ($shippingCost > 0){
             $items[] = array(
-                        'name' => $this->l('Shipping cost'), 
+                        'name' => $this->l('Shipping cost'),
                         'cart_quantity' => 1,
                         'total_wt' => number_format($shippingCost, 2, '.', '')
             );
-        
+			$desciption[]= $this->l('Shipping cost');
+		}
         if (Configuration::get('PAYLATER_ENVIRONMENT') == 1) {
             //mode live
             $account_id = Configuration::get('PAYLATER_ACCOUNT_ID_LIVE');
@@ -315,33 +358,35 @@ class Paylater extends PaymentModule
             //mode test
             $account_id = Configuration::get('PAYLATER_ACCOUNT_ID_TEST');
         }
-        
+		//discount
+		$discount = Configuration::get('PAYLATER_DISCOUNT');
+
         $endpoint = Configuration::get('PAYLATER_URL');
 
-        $order_id = $this->context->cart->id;   
-        
+        $order_id = $this->context->cart->id;
+
         //description
-        $description = $this->l('Pedido').' '.$order_id;
-        
+        //$description = $this->l('Pedido').' '.$order_id;
+		$description = implode(',',$desciption);
+
         //if ($this->context->cart->getTotalShippingCost(null, true, null) > 0)
             //$description .= ' '.$this->l('+ shipping cost');
 
         $amount = number_format(Tools::convertPrice((($this->context->cart->getOrderTotal(true, 3))), $this->context->currency), 2, '.', '');
-        $amount = str_replace('.','',$amount); 
-        
+        $amount = str_replace('.','',$amount);
+
         //clave_de_firma + account_id + order_id + amount + currency + ok_url + nok_url
-        
+
         //$cypher_method = "SHA1";
-        
+
         if (Configuration::get('PAYLATER_ENVIRONMENT') == 1)
-            $key_to_use = Configuration::get('PAYLATER_ACCOUNT_KEY_LIVE'); 
+            $key_to_use = Configuration::get('PAYLATER_ACCOUNT_KEY_LIVE');
         else
             $key_to_use = Configuration::get('PAYLATER_ACCOUNT_KEY_TEST');
-        
+
         //d($key_to_use.$account_id.$order_id.$amount.$this->context->currency->iso_code.$url_OK.$url_NOK);
-        $signature = sha1($key_to_use.$account_id.$order_id.$amount.$this->context->currency->iso_code.$url_OK.$url_NOK);
-        
-        $this->smarty->assign(array(
+        $signature = sha1($key_to_use.$account_id.$order_id.$amount.$this->context->currency->iso_code.$url_OK.$url_NOK.$callback_url.$discount);
+				$this->smarty->assign(array(
             'endpoint' => $endpoint,
             'account_id' => $account_id,
             'currency' => $this->context->currency->iso_code,
@@ -356,13 +401,46 @@ class Paylater extends PaymentModule
             'customer_email' => ($this->context->cookie->logged ? $this->context->cookie->email : false),
             'locale' => $this->context->language->iso_code,
             'cart_products' => $cart_products,
-            'iframe' => 'true',
-            'version4' => version_compare(_PS_VERSION_, "1.5", "<"),
-        ));
-        
+						'street' => $street,
+						'city' => $city,
+						'province' => $province,
+						'zipcode' => $zipcode,
+						'dni' => $dni,
+						'callback_url' => $callback_url,
+						'discount' => $discount,
+			      'iframe' => 'true',
+						'installment2' => $this->instAmount($amount,2),
+						'installment3' => $this->instAmount($amount,3),
+						'installment4' => $this->instAmount($amount,4),
+						'installment5' => $this->instAmount($amount,5),
+						'installment6' => $this->instAmount($amount,6),
+			            'version4' => version_compare(_PS_VERSION_, "1.5", "<"),
+			        ));
+
         return $this->display(__FILE__, 'views/templates/front/payment.tpl');
     }
-    
+
+		/*
+		* function instAmount
+		* calculate the price of the installment
+		* param $amount : amount in cents of the total loan
+		* param $num_installments: number of installments, integer
+		* return float with amount of the installment
+		*/
+		public function instAmount ($amount, $num_installments) {
+			$discount = Configuration::get('PAYLATER_DISCOUNT');
+			if ( $discount == "true"){
+				return ($amount/100) / $num_installments;
+			}
+		  $r = 0.25/365; #daily int
+		  $X = $amount/100; #total loan
+		  $aux = 1;  #first inst value
+		  for ($i=0; $i< $num_installments-2;$i++) {
+		    $aux = $aux + pow(1/(1+$r) ,(45+30*$i));
+		  }
+		  return ($X/$aux);
+		}
+
     public function hookDisplayPaymentEU($params)
     {
         return $this->hookPayment($params);
@@ -400,6 +478,17 @@ class Paylater extends PaymentModule
      * @return string
      */
     public function getPagantisLink($file,array $params = array())
+	{
+			return Tools::getShopDomainSsl(true)._MODULE_DIR_.$this->name.'/'.$file.'?'.htmlspecialchars_decode(http_build_query($params));
+	}
+
+	/**
+	 * Retrocomatibility prestashop 1.4, it's necesary file path because doesn't exists ModuleFrontController
+	 * @param $file
+	 * @param array $params
+	 * @return string
+	 */
+		public function getPagantisCallbackUrl($file,array $params = array())
 	{
 			return Tools::getShopDomainSsl(true)._MODULE_DIR_.$this->name.'/'.$file.'?'.http_build_query($params);
 	}

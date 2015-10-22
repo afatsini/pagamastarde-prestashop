@@ -102,6 +102,16 @@
         <br />
 
         <br />
+
+        <label for="PAYLATER_DISCOUNT" class="labels"> {l s='Discount' mod='paylater'}</label>
+        <select name="PAYLATER_DISCOUNT" size="1" class="selects">
+            {html_options values=$selectValues output=$outputEnvironment selected=$formConfigValues.PAYLATER_DISCOUNT}
+        </select>
+        <br />
+
+        <br />
+
+
         {*<label for="PAYLATER_MIN_AMOUNT" class="labels">{l s='Cart minimum amount to pay later.' mod='paylater'} </label>
         <input
                 id="PAYLATER_MIN_AMOUNT"
