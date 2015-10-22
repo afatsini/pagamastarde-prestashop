@@ -12,9 +12,6 @@
 
 Tanto el módulo como Pagantis tienen funcionamiento en real y en modo de pruebas independientes. Debes introducir las credenciales y las URLs de notificación correspondientes al entorno que desees usar.
 
-Esto incluye las URLs de notificación. Confirma que tienes configuradas las URLs de notificación tanto en pruebas como en real.
-
-
 ### Soporte
 
 El manual de instalación y uso del módulo se puede consultar [aquí](https://github.com/pagantis/pagamastarde-prestashop/blob/master/Guide.pdf).
